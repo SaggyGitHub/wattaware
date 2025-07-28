@@ -3,17 +3,20 @@ import { AppSidebar } from "@/components/AppSidebar"
 import { Menu } from "lucide-react"
 import {useEffect, useState} from "react"
 import mqtt from "mqtt"
+import {createContext, useContext} from "react"
 
 
 interface LayoutProps {
   children: React.ReactNode
 }
 
+export const MyContext = createContext(null);
+
+
 export function Layout({ children }: LayoutProps) {
   const [onlineStatus, setOnlineStatus] = useState(false);
   const [client, setClient] = useState(null);
   const [messages, setMessages] = useState([]);
-
 
   useEffect(() => {
     // Replace with your HiveMQ Cloud broker details
@@ -64,9 +67,11 @@ export function Layout({ children }: LayoutProps) {
     };
   }, []); // Empty dependency array ensures this runs once on mount
 
+  const contextValue = {onlineStatus, client}
  
   return (
-    <SidebarProvider>
+    <MyContext.Provider value={contextValue}>
+      <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         
@@ -84,8 +89,15 @@ export function Layout({ children }: LayoutProps) {
             </div>
             
             <div className="flex items-center gap-2">
-              <div className="h-2 w-2 bg-gradient-success rounded-full shadow-success-glow animate-pulse"></div>
-              <span className={`text-sm ${onlineStatus ? 'text-success' : 'text-red-500'}`}>{onlineStatus ? 'System Online' : 'System Offline'}</span>
+              {
+                onlineStatus && <div className="h-2 w-2 bg-gradient-success rounded-full shadow-success-glow animate-pulse"></div>    
+              }
+              {
+                !onlineStatus && <div className="h-2 w-2 bg-red-500 rounded-full shadow-success-glow"></div> 
+              }
+              <span className={`text-sm ${onlineStatus ? 'text-success' : 'text-red-500'}`}>
+                {onlineStatus ? 'System Online' : 'System Offline'}
+              </span>
             </div>
           </header>
           
@@ -96,5 +108,6 @@ export function Layout({ children }: LayoutProps) {
         </div>
       </div>
     </SidebarProvider>
-  )
+    </MyContext.Provider>
+    )
 }

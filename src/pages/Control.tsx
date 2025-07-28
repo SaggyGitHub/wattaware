@@ -3,6 +3,9 @@ import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Lightbulb, Fan, Thermometer, Shield, Wifi, Monitor } from "lucide-react"
 import { useState } from "react"
+import { useContext } from "react"
+import { MyContext } from "@/components/Layout"
+import { MqttClient } from "mqtt"
 
 interface Device {
   id: string
@@ -19,6 +22,7 @@ interface DeviceCardProps {
   device: Device
   onToggle: (id: string) => void
 }
+
 
 function DeviceCard({ device, onToggle }: DeviceCardProps) {
   return (
@@ -81,7 +85,11 @@ function DeviceCard({ device, onToggle }: DeviceCardProps) {
   )
 }
 
+
+
 export default function Control() {
+  const {onlineStatus, client} = useContext(MyContext);
+
   const [devices, setDevices] = useState<Device[]>([
     {
       id: '1',
@@ -97,7 +105,7 @@ export default function Control() {
       id: '2',
       name: 'Ceiling Fan',
       type: 'Ventilation',
-      status: false,
+      status: true,
       icon: <Fan className="h-4 w-4 text-white" />,
       location: 'Bedroom',
       power: '45W',
@@ -107,7 +115,7 @@ export default function Control() {
       id: '3',
       name: 'Smart Thermostat',
       type: 'HVAC',
-      status: true,
+      status: false,
       icon: <Thermometer className="h-4 w-4 text-white" />,
       location: 'Hallway',
       power: '8W',
@@ -117,7 +125,7 @@ export default function Control() {
       id: '4',
       name: 'Security Camera',
       type: 'Security',
-      status: true,
+      status: false,
       icon: <Monitor className="h-4 w-4 text-white" />,
       location: 'Front Door',
       power: '15W',
@@ -137,7 +145,7 @@ export default function Control() {
       id: '6',
       name: 'WiFi Router',
       type: 'Network',
-      status: true,
+      status: false,
       icon: <Wifi className="h-4 w-4 text-white" />,
       location: 'Office',
       power: '22W',
@@ -145,15 +153,36 @@ export default function Control() {
     }
   ])
 
+ 
+
   const handleToggle = (deviceId: string) => {
     setDevices(prevDevices =>
-      prevDevices.map(device =>
-        device.id === deviceId
-          ? { ...device, status: !device.status, lastSeen: 'Just now' }
-          : device
+      prevDevices.map(function(device){
+        if(device.id === deviceId)
+          {
+            device = { ...device, status: !device.status, lastSeen: 'Just now' };
+
+            pushMqttMessage(device.status, device.id);
+            
+            return device;
+          }
+            else
+              return device;
+        }  
       )
     )
   }
+
+  function pushMqttMessage(status : boolean, deviceId : String)
+{
+  //const {client} = useContext(MyContext);
+
+  client.publish('WattAware_Command', 'VOLT_'+deviceId+'_RELAY_'+(status ? 'ON' :'OFF'), function() {
+    console.log("Message is published!");
+  });
+
+}
+  
 
   const onlineDevices = devices.filter(device => device.status).length
   const totalPower = devices
