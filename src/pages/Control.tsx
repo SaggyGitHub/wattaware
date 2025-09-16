@@ -19,7 +19,7 @@ interface Device {
 }
 
 interface DeviceCardProps {
-  device: Device
+  device: Device      
   onToggle: (id: string) => void
 }
 
@@ -174,14 +174,19 @@ export default function Control() {
     )
   }
 
-  function pushMqttMessage(status : boolean, deviceId : String)
+function pushMqttMessage(status : boolean, deviceId : String)
 {
   //const {client} = useContext(MyContext);
+  try{
+    client.publish('WattAware_Command', 'VOLT_'+deviceId+'_RELAY_'+(status ? 'ON' :'OFF'), function() {
+      console.log("Message is published!");
+    });
+  }
+  catch(error)
+  {
+    console.log("An error occured :" + error);
 
-  client.publish('WattAware_Command', 'VOLT_'+deviceId+'_RELAY_'+(status ? 'ON' :'OFF'), function() {
-    console.log("Message is published!");
-  });
-
+  }
 }
   
 

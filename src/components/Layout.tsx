@@ -6,6 +6,7 @@ import mqtt from "mqtt"
 import {createContext, useContext} from "react"
 
 
+
 interface LayoutProps {
   children: React.ReactNode
 }
@@ -37,6 +38,12 @@ export function Layout({ children }: LayoutProps) {
       mqttClient.subscribe('Online_Status', (err) => {
         if (!err) {
           console.log('Subscribed to Online_Status');
+        }
+      });
+
+      mqttClient.subscribe('WattAware_Control_Status', (err) => {
+        if (!err) {
+          console.log('Subscribed to WattAware_Control_Status');
         }
       });
     });
