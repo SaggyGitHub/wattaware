@@ -23,7 +23,7 @@ interface DeviceCardProps {
   onToggle: (id: string) => void
 }
 
-//stud comment
+//stud comment one
 
 function DeviceCard({ device, onToggle }: DeviceCardProps) {
   return (
